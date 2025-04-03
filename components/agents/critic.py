@@ -12,11 +12,23 @@ def render_critic_agent():
     This agent provides detailed feedback and evaluates quality across multiple dimensions.
     """)
 
-    # Enable/disable toggle
-    critic_enabled = st.toggle("Enable Critic/Evaluator Agent",
-                              value=st.session_state.critic_enabled,
-                              help="When enabled, this agent will evaluate content quality against criteria")
-    st.session_state.critic_enabled = critic_enabled
+    # Initialize the state if it doesn't exist
+    if "critic_enabled" not in st.session_state:
+        st.session_state.critic_enabled = False
+
+    # Enable/disable toggle with callback
+    def on_toggle_change():
+        # Callback updates the main session state variable
+        st.session_state.critic_enabled = st.session_state.critic_component_toggle
+
+    # Use a unique key for the widget
+    critic_enabled = st.toggle(
+        "Enable Critic/Evaluator Agent",
+        value=st.session_state.critic_enabled,
+        help="When enabled, this agent will evaluate content quality against criteria",
+        key="critic_component_toggle",  # Unique key different from session state variable
+        on_change=on_toggle_change
+    )
 
     if critic_enabled:
         col1, col2 = st.columns([2, 1])
@@ -52,12 +64,12 @@ def render_critic_agent():
                                                         key=f"critic_weight_{i}")
 
                     with cols[3]:
-                        if i > 0 and st.button("Remove", key=f"critic_remove_{i}"):
+                        if i > 0 and st.button("Remove", key=f"critic_remove_btn_{i}"):
                             st.session_state.critic_evaluation_criteria.pop(i)
                             st.rerun()
 
             # Add criterion button
-            if st.button("+ Add Criterion"):
+            if st.button("+ Add Criterion", key="critic_add_criterion_btn"):
                 st.session_state.critic_evaluation_criteria.append({
                     "name": f"New Criterion",
                     "description": "Description of this criterion",
@@ -102,7 +114,7 @@ def render_critic_agent():
                 "Model",
                 ["Claude 3.5 Sonnet", "Claude 3.5 Haiku", "Claude 3 Opus"],
                 index=0,
-                key="critic_model"
+                key="critic_component_model"  # Changed to unique key
             )
 
             # Advanced settings

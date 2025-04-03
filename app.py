@@ -8,11 +8,11 @@ from utils.state_persistence import (
     list_saved_states,
     delete_saved_state
 )
-from components.building_blocks import render_building_blocks_tab
-from components.workflows import render_workflows_tab
-from components.agents import render_agents_tab
-from components.final_prompt import render_final_prompt_tab
-from components.content_display import render_content_display
+from components.building_blocks.main import render_building_blocks_tab
+from components.workflows.main import render_workflows_tab
+from components.agents.main import render_agents_tab
+from components.final_prompt.main import render_final_prompt_tab
+from components.content_display.main import render_content_display
 
 # Set page config
 st.set_page_config(
@@ -38,7 +38,7 @@ def render_session_management():
             st.markdown("#### Save Current Session")
             session_name = st.text_input("Session Name (optional)", key="session_save_name")
 
-            if st.button("Save Session", use_container_width=True):
+            if st.button("Save Session", use_container_width=True, key="sidebar_save_session_btn"):
                 filename = save_state_to_local_storage(session_name if session_name else None)
                 st.success(f"Session saved as: {os.path.basename(filename)}")
 
@@ -48,6 +48,13 @@ def render_session_management():
 
 
 def main():
+    """<header>
+                <div class="logo">LLM Prompt Engineering Framework</div>
+                <div class="nav-buttons">
+                    <button key="header_save_template_btn">Save Template</button>
+                    <button key="header_load_template_btn">Load Template</button>
+                </div>
+            </header>"""
     # Initialize session state
     initialize_session_state()
 
@@ -55,13 +62,15 @@ def main():
     col_header_left, col_header_right = st.columns([3, 1])
     with col_header_left:
         st.markdown('<div class="main-header">LLM Prompt Engineering Framework</div>', unsafe_allow_html=True)
+
+
     with col_header_right:
         col_a, col_b = st.columns(2)
         with col_a:
-            if st.button("Save State", use_container_width=True):
+            if st.button("Save State", use_container_width=True, key="header_save_state_btn"):
                 st.session_state.show_save_dialog = True
         with col_b:
-            if st.button("Load State", use_container_width=True):
+            if st.button("Load State", use_container_width=True, key="header_load_state_btn"):
                 st.session_state.show_load_dialog = True
 
     # Show save/load dialogs if requested
@@ -70,13 +79,13 @@ def main():
             session_name = st.text_input("State Name", key="save_state_name")
             col1, col2 = st.columns([1, 1])
             with col1:
-                if st.button("Save", key="save_state_confirm", use_container_width=True):
+                if st.button("Save", key="save_state_confirm_btn", use_container_width=True):
                     filename = save_state_to_local_storage(session_name if session_name else None)
                     st.success(f"State saved as: {os.path.basename(filename)}")
                     st.session_state.show_save_dialog = False
                     st.rerun()
             with col2:
-                if st.button("Cancel", key="save_state_cancel", use_container_width=True):
+                if st.button("Cancel", key="save_state_cancel_btn", use_container_width=True):
                     st.session_state.show_save_dialog = False
                     st.rerun()
 
@@ -86,7 +95,7 @@ def main():
 
             if not saved_states:
                 st.warning("No saved states found.")
-                if st.button("Close", key="load_state_close_empty"):
+                if st.button("Close", key="load_state_close_empty_btn"):
                     st.session_state.show_load_dialog = False
                     st.rerun()
             else:
@@ -100,19 +109,19 @@ def main():
 
                 col1, col2, col3 = st.columns([1, 1, 1])
                 with col1:
-                    if st.button("Load", key="load_state_confirm", use_container_width=True):
+                    if st.button("Load", key="load_state_confirm_btn", use_container_width=True):
                         if load_state_from_local_storage(saved_states[selected_state_idx]["path"]):
                             st.success("State loaded successfully!")
                             st.session_state.show_load_dialog = False
                             st.rerun()
                 with col2:
-                    if st.button("Delete", key="delete_state", use_container_width=True):
+                    if st.button("Delete", key="delete_state_btn", use_container_width=True):
                         if delete_saved_state(saved_states[selected_state_idx]["path"]):
                             st.warning("State deleted.")
                             st.session_state.show_load_dialog = False
                             st.rerun()
                 with col3:
-                    if st.button("Cancel", key="load_state_cancel", use_container_width=True):
+                    if st.button("Cancel", key="load_state_cancel_btn", use_container_width=True):
                         st.session_state.show_load_dialog = False
                         st.rerun()
 
@@ -135,7 +144,7 @@ def main():
 
         if selected_template == "+ Save Current as Template":
             template_name = st.text_input("Template Name")
-            if st.button("Save Template") and template_name:
+            if st.button("Save Template", key="sidebar_save_template_btn") and template_name:
                 template_data = {
                     # Collect all session state data to save
                     "context": st.session_state.context,
@@ -156,7 +165,7 @@ def main():
                 saved_path = save_template(template_data, template_name)
                 st.success(f"Template saved to {saved_path}")
         elif selected_template in template_options and selected_template != "Default Template":
-            if st.button("Load Template"):
+            if st.button("Load Template", key="sidebar_load_template_btn"):
                 file_path = f"templates/{selected_template.replace(' ', '_')}.json"
                 template_data = load_template(file_path)
                 for key, value in template_data.items():
@@ -169,16 +178,16 @@ def main():
 
         # Actions
         st.divider()
-        if st.button("Generate Content", type="primary", use_container_width=True):
+        if st.button("Generate Content", type="primary", use_container_width=True, key="sidebar_generate_content_btn"):
             st.session_state.generated = True
             # In a real implementation, we would use an API call to an LLM service
             if "result_content" not in st.session_state:
                 st.session_state.result_content = """## Implementing Agile in Software Development
 
-Agile methodologies have revolutionized software development by emphasizing iterative progress, team collaboration, and customer feedback. This guide will help you understand and implement Agile practices in your organization.
+        Agile methodologies have revolutionized software development by emphasizing iterative progress, team collaboration, and customer feedback. This guide will help you understand and implement Agile practices in your organization.
 
-... (content continues)
-"""
+        ... (content continues)
+        """
 
     # Main content tabs
     tab1, tab2, tab3, tab4 = st.tabs(["Building Blocks", "Workflows", "Agents", "Final Prompt"])
@@ -198,4 +207,9 @@ Agile methodologies have revolutionized software development by emphasizing iter
 
     # Show generated content if available
     if "generated" in st.session_state and st.session_state.generated:
+        # Fixed function call without parameters to match current function signature
         render_content_display()
+
+
+if __name__ == "__main__":
+    main()

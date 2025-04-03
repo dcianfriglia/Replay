@@ -18,11 +18,22 @@ def render_rag_section():
              caption="Retrieval-Augmented Generation workflow showing retrieval and integration of external information",
              use_column_width=True)
 
-    # Enable/disable toggle
-    rag_enabled = st.toggle("Enable Retrieval-Augmented Generation",
-                            value=st.session_state.rag_enabled,
-                            help="When enabled, responses will be augmented with retrieved external knowledge")
-    st.session_state.rag_enabled = rag_enabled
+    # Enable/disable toggle using a callback pattern
+    if "rag_enabled" not in st.session_state:
+        st.session_state.rag_enabled = False
+
+    def on_toggle_change():
+        # Callback updates the main session state variable from the widget-specific one
+        st.session_state.rag_enabled = st.session_state.rag_component_toggle
+
+    # Use the toggle with a unique key that doesn't conflict with session state variable
+    rag_enabled = st.toggle(
+        "Enable Retrieval-Augmented Generation",
+        value=st.session_state.rag_enabled,
+        help="When enabled, responses will be augmented with retrieved external knowledge",
+        key="rag_component_toggle",  # Unique key different from session state variable
+        on_change=on_toggle_change
+    )
 
     if rag_enabled:
         col1, col2 = st.columns([2, 1])
@@ -61,12 +72,12 @@ def render_rag_section():
                     with cols[2]:
                         source["enabled"] = st.checkbox("Enabled", value=source["enabled"], key=f"source_enabled_{i}")
 
-                        if i > 0 and st.button("Remove", key=f"remove_source_{i}"):
+                        if i > 0 and st.button("Remove", key=f"rag_remove_source_{i}"):
                             st.session_state.rag_knowledge_sources.pop(i)
                             st.rerun()
 
             # Add source button
-            if st.button("+ Add Knowledge Source"):
+            if st.button("+ Add Knowledge Source", key="rag_add_source_btn"):
                 st.session_state.rag_knowledge_sources.append({
                     "type": "Custom Knowledge Base",
                     "description": "Description of this knowledge source",

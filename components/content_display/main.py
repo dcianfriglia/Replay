@@ -251,7 +251,12 @@ def render_content_display():
                 st.rerun()
 
     # Display quality metrics
-    render_quality_metrics(st.session_state.result_content)
+    if hasattr(st.session_state, 'quality_metrics'):
+        render_quality_metrics(st.session_state.result_content)
+    else:
+        # If metrics don't exist yet, calculate them
+        st.session_state.quality_metrics = calculate_quality_metrics(st.session_state.result_content)
+        render_quality_metrics(st.session_state.result_content)
 
     # Display feedback section
     render_feedback_section()

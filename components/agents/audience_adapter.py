@@ -12,11 +12,23 @@ def render_audience_adapter_agent():
     This agent adjusts terminology, examples, and complexity to suit the target audience.
     """)
 
-    # Enable/disable toggle
-    audience_adapter_enabled = st.toggle("Enable Audience Adapter Agent",
-                                        value=st.session_state.audience_adapter_enabled,
-                                        help="When enabled, this agent will tailor content for specific audiences")
-    st.session_state.audience_adapter_enabled = audience_adapter_enabled
+    # Initialize the state if it doesn't exist
+    if "audience_adapter_enabled" not in st.session_state:
+        st.session_state.audience_adapter_enabled = False
+
+    # Enable/disable toggle with callback
+    def on_toggle_change():
+        # Callback updates the main session state variable
+        st.session_state.audience_adapter_enabled = st.session_state.audience_adapter_component_toggle
+
+    # Use a unique key for the widget
+    audience_adapter_enabled = st.toggle(
+        "Enable Audience Adapter Agent",
+        value=st.session_state.audience_adapter_enabled,
+        help="When enabled, this agent will tailor content for specific audiences",
+        key="audience_adapter_component_toggle",  # Unique key different from session state variable
+        on_change=on_toggle_change
+    )
 
     if audience_adapter_enabled:
         col1, col2 = st.columns([2, 1])
@@ -27,7 +39,7 @@ def render_audience_adapter_agent():
 
             audience_type = st.selectbox(
                 "Primary audience type",
-                ["General audience", "Technical professionals", "Business stakeholders", 
+                ["General audience", "Technical professionals", "Business stakeholders",
                  "Beginners/Novices", "Academic audience", "Custom audience"],
                 index=0,
                 key="audience_type"
@@ -71,7 +83,7 @@ def render_audience_adapter_agent():
             subsection_header("Audience Characteristics")
 
             col_a, col_b = st.columns(2)
-            
+
             with col_a:
                 st.slider(
                     "Technical Knowledge",
@@ -81,7 +93,7 @@ def render_audience_adapter_agent():
                     help="1 = Minimal, 5 = Expert",
                     key="audience_technical_knowledge"
                 )
-                
+
                 st.slider(
                     "Attention Span",
                     min_value=1,
@@ -90,7 +102,7 @@ def render_audience_adapter_agent():
                     help="1 = Very short, 5 = Extended focus",
                     key="audience_attention_span"
                 )
-            
+
             with col_b:
                 st.slider(
                     "Domain Familiarity",
@@ -100,7 +112,7 @@ def render_audience_adapter_agent():
                     help="1 = Newcomer, 5 = Subject expert",
                     key="audience_domain_familiarity"
                 )
-                
+
                 st.slider(
                     "Reading Level",
                     min_value=1,
@@ -139,7 +151,7 @@ def render_audience_adapter_agent():
                 "Model",
                 ["Claude 3.5 Sonnet", "Claude 3.5 Haiku", "Claude 3 Opus"],
                 index=0,
-                key="audience_adapter_model"
+                key="audience_adapter_component_model"  # Changed to unique key
             )
 
             # Advanced settings
@@ -175,14 +187,14 @@ def render_audience_adapter_agent():
 
             # Communication style
             subsection_header("Communication Style")
-            
+
             st.select_slider(
                 "Formality",
                 options=["Casual", "Conversational", "Neutral", "Professional", "Academic"],
                 value="Neutral",
                 key="audience_formality"
             )
-            
+
             st.select_slider(
                 "Complexity",
                 options=["Elementary", "Basic", "Moderate", "Advanced", "Technical"],
@@ -220,5 +232,6 @@ def render_audience_adapter_agent():
             The implementation employs a distributed architecture leveraging containerized microservices orchestrated via Kubernetes. The system's communication paradigm adheres to Command Query Responsibility Segregation principles, while state management utilizes event sourcing methodologies. This approach facilitates eventual consistency across distinct bounded contexts, enabling robust scalability and fault tolerance.
             ```
             """)
-            
-            st.info("The Audience Adapter Agent adjusts terminology, examples, and complexity while preserving the core information. It considers the audience's technical knowledge, domain familiarity, and context to make content more accessible and relevant.")
+
+            st.info(
+                "The Audience Adapter Agent adjusts terminology, examples, and complexity while preserving the core information. It considers the audience's technical knowledge, domain familiarity, and context to make content more accessible and relevant.")

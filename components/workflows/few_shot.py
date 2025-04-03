@@ -18,11 +18,22 @@ def render_few_shot_section():
              caption="Few-Shot Learning workflow showing examples guiding model behavior",
              use_column_width=True)
 
-    # Enable/disable toggle
-    few_shot_enabled = st.toggle("Enable Few-Shot Learning",
-                                 value=st.session_state.few_shot_enabled,
-                                 help="When enabled, examples will be included in prompts to guide model behavior")
-    st.session_state.few_shot_enabled = few_shot_enabled
+    # Enable/disable toggle using a callback pattern
+    if "few_shot_enabled" not in st.session_state:
+        st.session_state.few_shot_enabled = True
+
+    def on_toggle_change():
+        # Callback updates the main session state variable from the widget-specific one
+        st.session_state.few_shot_enabled = st.session_state.few_shot_component_toggle
+
+    # Use the toggle with a unique key that doesn't conflict with session state variable
+    few_shot_enabled = st.toggle(
+        "Enable Few-Shot Learning",
+        value=st.session_state.few_shot_enabled,
+        help="When enabled, examples will be included in prompts to guide model behavior",
+        key="few_shot_component_toggle",  # Unique key different from session state variable
+        on_change=on_toggle_change
+    )
 
     if few_shot_enabled:
         col1, col2 = st.columns([2, 1])

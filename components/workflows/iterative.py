@@ -17,11 +17,31 @@ def render_iterative_refinement_section():
     from .workflow_diagrams.iterative import render_iterative_diagram
     render_iterative_diagram()
 
-    # Enable/disable toggle
-    iterative_refinement_enabled = st.toggle("Enable Iterative Refinement",
-                                             value=st.session_state.iterative_refinement_enabled,
-                                             help="When enabled, content will be iteratively improved")
-    st.session_state.iterative_refinement_enabled = iterative_refinement_enabled
+    # Enable/disable toggle using a callback pattern
+    if "iterative_refinement_enabled" not in st.session_state:
+        st.session_state.iterative_refinement_enabled = False
+
+    def on_toggle_change():
+        # Callback updates the main session state variable from the widget-specific one
+        st.session_state.iterative_refinement_enabled = st.session_state.iterative_component_toggle
+
+    # Use the toggle with a unique key that doesn't conflict with session state variable
+    iterative_refinement_enabled = st.toggle(
+        "Enable Iterative Refinement",
+        value=st.session_state.iterative_refinement_enabled,
+        help="When enabled, content will be iteratively improved",
+        key="iterative_component_toggle",  # Unique key different from session state variable
+        on_change=on_toggle_change
+    )
+
+    # Use the toggle with a key that matches the session state variable
+    iterative_refinement_enabled = st.toggle(
+        "Enable Iterative Refinement",
+        value=st.session_state.iterative_refinement_enabled,
+        help="When enabled, content will be iteratively improved",
+        key="iterative_refinement_enabled",
+        on_change=on_toggle_change
+    )
 
     if iterative_refinement_enabled:
         col1, col2 = st.columns([2, 1])
@@ -55,19 +75,20 @@ def render_iterative_refinement_section():
 
             with col_a:
                 focus_clarity = st.checkbox("Clarity", value="Clarity" in st.session_state.iterative_focus,
-                                            key="focus_clarity")
+                                            key="iterative_focus_clarity")
                 focus_accuracy = st.checkbox("Accuracy", value="Accuracy" in st.session_state.iterative_focus,
-                                             key="focus_accuracy")
+                                             key="iterative_focus_accuracy")
                 focus_coherence = st.checkbox("Coherence", value="Coherence" in st.session_state.iterative_focus,
-                                              key="focus_coherence")
+                                              key="iterative_focus_coherence")
 
             with col_b:
                 focus_conciseness = st.checkbox("Conciseness", value="Conciseness" in st.session_state.iterative_focus,
-                                                key="focus_conciseness")
+                                                key="iterative_focus_conciseness")
                 focus_completeness = st.checkbox("Completeness",
                                                  value="Completeness" in st.session_state.iterative_focus,
-                                                 key="focus_completeness")
-                focus_style = st.checkbox("Style", value="Style" in st.session_state.iterative_focus, key="focus_style")
+                                                 key="iterative_focus_completeness")
+                focus_style = st.checkbox("Style", value="Style" in st.session_state.iterative_focus,
+                                         key="iterative_focus_style")
 
             # Update focus areas in session state
             st.session_state.iterative_focus = [

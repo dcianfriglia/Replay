@@ -82,7 +82,7 @@ def render_orchestrator_section():
                             st.rerun()
 
             # Add worker button
-            if st.button("+ Add Worker"):
+            if st.button("+ Add Worker", key="orchestrator_add_worker_btn"):
                 st.session_state.orchestrator_workers.append({
                     "name": f"New Worker {len(st.session_state.orchestrator_workers) + 1}",
                     "skills": "Describe worker skills and specialization",

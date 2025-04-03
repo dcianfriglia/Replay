@@ -18,11 +18,22 @@ def render_self_consistency_section():
              caption="Self-Consistency workflow showing validation across multiple reasoning paths",
              use_column_width=True)
 
-    # Enable/disable toggle
-    self_consistency_enabled = st.toggle("Enable Self-Consistency Checking",
-                                         value=st.session_state.self_consistency_enabled,
-                                         help="When enabled, outputs will be verified for consistency using multiple approaches")
-    st.session_state.self_consistency_enabled = self_consistency_enabled
+    # Enable/disable toggle using a callback pattern
+    if "self_consistency_enabled" not in st.session_state:
+        st.session_state.self_consistency_enabled = False
+
+    def on_toggle_change():
+        # Callback updates the main session state variable from the widget-specific one
+        st.session_state.self_consistency_enabled = st.session_state.consistency_component_toggle
+
+    # Use the toggle with a unique key that doesn't conflict with session state variable
+    self_consistency_enabled = st.toggle(
+        "Enable Self-Consistency Checking",
+        value=st.session_state.self_consistency_enabled,
+        help="When enabled, outputs will be verified for consistency using multiple approaches",
+        key="consistency_component_toggle",  # Unique key different from session state variable
+        on_change=on_toggle_change
+    )
 
     if self_consistency_enabled:
         col1, col2 = st.columns([2, 1])
@@ -36,14 +47,15 @@ def render_self_consistency_section():
 
             check_cols = st.columns(2)
             with check_cols[0]:
-                factual_check = st.checkbox("Factual consistency", value=True, key="factual_check")
-                logical_check = st.checkbox("Logical coherence", value=True, key="logical_check")
-                contextual_check = st.checkbox("Contextual relevance", value=False, key="contextual_check")
+                factual_check = st.checkbox("Factual consistency", value=True, key="consistency_factual_check")
+                logical_check = st.checkbox("Logical coherence", value=True, key="consistency_logical_check")
+                contextual_check = st.checkbox("Contextual relevance", value=False, key="consistency_contextual_check")
 
             with check_cols[1]:
-                contradictions_check = st.checkbox("Internal contradictions", value=True, key="contradictions_check")
-                style_check = st.checkbox("Style uniformity", value=False, key="style_check")
-                completeness_check = st.checkbox("Completeness", value=True, key="completeness_check")
+                contradictions_check = st.checkbox("Internal contradictions", value=True,
+                                                   key="consistency_contradictions_check")
+                style_check = st.checkbox("Style uniformity", value=False, key="consistency_style_check")
+                completeness_check = st.checkbox("Completeness", value=True, key="consistency_completeness_check")
 
             # Validation method
             st.markdown("#### Validation Method")

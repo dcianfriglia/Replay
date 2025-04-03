@@ -12,11 +12,23 @@ def render_fact_checker_agent():
     This agent identifies potential errors, makes corrections, and ensures information reliability.
     """)
 
-    # Enable/disable toggle
-    fact_checker_enabled = st.toggle("Enable Fact Checker Agent",
-                                     value=st.session_state.fact_checker_enabled,
-                                     help="When enabled, this agent will verify factual accuracy of content")
-    st.session_state.fact_checker_enabled = fact_checker_enabled
+    # Initialize the state if it doesn't exist
+    if "fact_checker_enabled" not in st.session_state:
+        st.session_state.fact_checker_enabled = False
+
+    # Enable/disable toggle with callback
+    def on_toggle_change():
+        # Callback updates the main session state variable
+        st.session_state.fact_checker_enabled = st.session_state.fact_checker_component_toggle
+
+    # Use a unique key for the widget
+    fact_checker_enabled = st.toggle(
+        "Enable Fact Checker Agent",
+        value=st.session_state.fact_checker_enabled,
+        help="When enabled, this agent will verify factual accuracy of content",
+        key="fact_checker_component_toggle",  # Unique key different from session state variable
+        on_change=on_toggle_change
+    )
 
     if fact_checker_enabled:
         col1, col2 = st.columns([2, 1])
@@ -86,7 +98,7 @@ def render_fact_checker_agent():
                 "Model",
                 ["Claude 3.5 Sonnet", "Claude 3.5 Haiku", "Claude 3 Opus"],
                 index=0,
-                key="fact_checker_model"
+                key="fact_checker_component_model"  # Changed to unique key
             )
 
             st.slider(

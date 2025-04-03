@@ -206,7 +206,7 @@ def render_sectioning_configuration():
                     st.rerun()
 
     # Add section button
-    if st.button("+ Add Section"):
+    if st.button("+ Add Section", key="parallel_add_section_btn"):
         st.session_state.parallelization_sections.append({
             "name": f"New Section {len(st.session_state.parallelization_sections) + 1}",
             "instructions": "Instructions for this section",

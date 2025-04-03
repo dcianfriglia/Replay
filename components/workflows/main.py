@@ -8,7 +8,8 @@ from .consistency import render_self_consistency_section
 from .orchestrator import render_orchestrator_section
 from .evaluator_optimizer import render_evaluator_optimizer_section
 from .routing import render_routing_section
-from .parallelization import render_parallelization_section
+from .parellalization_ import render_parallelization_section
+# from .parallelization_ import render_parallelization_section
 
 
 def render_workflows_tab():

@@ -12,11 +12,23 @@ def render_editor_agent():
     This agent takes content from the Creator and enhances readability and presentation.
     """)
 
-    # Enable/disable toggle
-    editor_enabled = st.toggle("Enable Editor/Refiner Agent",
-                               value=st.session_state.editor_enabled,
-                               help="When enabled, this agent will refine and improve content")
-    st.session_state.editor_enabled = editor_enabled
+    # Initialize the state if it doesn't exist
+    if "editor_enabled" not in st.session_state:
+        st.session_state.editor_enabled = True
+
+    # Enable/disable toggle with callback
+    def on_toggle_change():
+        # Callback updates the main session state variable
+        st.session_state.editor_enabled = st.session_state.editor_component_toggle
+
+    # Use a unique key for the widget
+    editor_enabled = st.toggle(
+        "Enable Editor/Refiner Agent",
+        value=st.session_state.editor_enabled,
+        help="When enabled, this agent will refine and improve content",
+        key="editor_component_toggle",  # Unique key different from session state variable
+        on_change=on_toggle_change
+    )
 
     if editor_enabled:
         col1, col2 = st.columns([2, 1])
@@ -30,7 +42,7 @@ def render_editor_agent():
                 ["Grammar & syntax", "Clarity & readability", "Flow & coherence",
                  "Tone consistency", "Simplification", "Elaboration"],
                 default=["Grammar & syntax", "Clarity & readability", "Flow & coherence"],
-                key="editing_focus"
+                key="editor_component_focus_areas"  # Changed to unique key
             )
 
             # Style guide
@@ -41,7 +53,7 @@ def render_editor_agent():
                 ["None (General editing)", "Professional/Business", "Academic",
                  "Technical", "Creative", "Journalistic", "Custom..."],
                 index=1,
-                key="editor_style"
+                key="editor_component_style"  # Made key more specific
             )
 
             if style_guide == "Custom...":
@@ -70,7 +82,7 @@ def render_editor_agent():
                 "Model",
                 ["Claude 3.5 Sonnet", "Claude 3.5 Haiku", "Claude 3 Opus"],
                 index=0,
-                key="editor_model"
+                key="editor_component_model"  # Changed to unique key
             )
 
             st.slider(

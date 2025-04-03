@@ -12,11 +12,23 @@ def render_content_creator_agent():
     This agent focuses on producing well-structured, informative content based on the input prompt.
     """)
 
-    # Enable/disable toggle
-    creator_enabled = st.toggle("Enable Content Creator Agent",
-                                value=st.session_state.content_creator_enabled,
-                                help="When enabled, this agent will generate the initial content")
-    st.session_state.content_creator_enabled = creator_enabled
+    # Initialize the state if it doesn't exist
+    if "content_creator_enabled" not in st.session_state:
+        st.session_state.content_creator_enabled = True
+
+    # Enable/disable toggle with callback
+    def on_toggle_change():
+        # Callback updates the main session state variable
+        st.session_state.content_creator_enabled = st.session_state.content_creator_component_toggle
+
+    # Use a unique key for the widget
+    creator_enabled = st.toggle(
+        "Enable Content Creator Agent",
+        value=st.session_state.content_creator_enabled,
+        help="When enabled, this agent will generate the initial content",
+        key="content_creator_component_toggle",  # Unique key different from session state variable
+        on_change=on_toggle_change
+    )
 
     if creator_enabled:
         col1, col2 = st.columns([2, 1])
@@ -30,7 +42,7 @@ def render_content_creator_agent():
                 ["Neutral & Objective", "Informative & Educational", "Creative & Engaging",
                  "Concise & Direct", "Custom..."],
                 index=1,
-                key="creator_personality",
+                key="creator_component_personality",  # Changed to unique key
                 help="The overall tone and style of the content creator"
             )
 
@@ -39,7 +51,7 @@ def render_content_creator_agent():
                     "Define custom personality",
                     value="",
                     height=100,
-                    key="creator_custom_personality"
+                    key="creator_component_custom_personality"  # Changed to unique key
                 )
 
             # Knowledge emphasis
@@ -56,7 +68,7 @@ def render_content_creator_agent():
                     min_value=1,
                     max_value=5,
                     value=3,
-                    key="knowledge_emphasis",
+                    key="creator_component_knowledge_emphasis",  # Changed to unique key
                     label_visibility="collapsed"
                 )
             with col_c:
@@ -69,7 +81,7 @@ def render_content_creator_agent():
                 "Provide specific instructions for this agent",
                 value="Focus on creating well-structured content that balances theoretical knowledge with practical examples. Use clear headings and subheadings to organize information logically.",
                 height=150,
-                key="creator_instructions"
+                key="creator_component_instructions"  # Changed to unique key
             )
 
         with col2:
@@ -80,7 +92,7 @@ def render_content_creator_agent():
                 "Model",
                 ["Claude 3.5 Sonnet", "Claude 3.5 Haiku", "Claude 3 Opus"],
                 index=0,
-                key="creator_model"
+                key="creator_component_model"  # Changed to unique key
             )
 
             st.slider(
@@ -89,7 +101,7 @@ def render_content_creator_agent():
                 max_value=1.0,
                 value=0.7,
                 step=0.1,
-                key="creator_temperature",
+                key="creator_component_temperature",  # Changed to unique key
                 help="Higher values make output more creative, lower values more deterministic"
             )
 

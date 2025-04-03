@@ -24,13 +24,13 @@ def render_examples_section():
 
         col_add, col_remove = st.columns([1, 1])
         with col_add:
-            if st.button("Add Example"):
+            if st.button("Add Example", key="examples_add_example_btn"):
                 st.session_state.examples.append({"input": "", "output": ""})
                 st.rerun()
 
         with col_remove:
             if len(st.session_state.examples) > 1:
-                if st.button("Remove Last Example"):
+                if st.button("Remove Last Example", key="examples_remove_example_btn"):
                     st.session_state.examples.pop()
                     st.rerun()
 

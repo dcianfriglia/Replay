@@ -17,11 +17,24 @@ def render_chain_of_thought_section():
     from .workflow_diagrams.chain_of_thought import render_chain_of_thought_diagram
     render_chain_of_thought_diagram()
 
-    # Enable/disable toggle
-    thinking_steps_enabled = st.toggle("Enable Chain-of-Thought",
-                                       value=st.session_state.thinking_steps_enabled,
-                                       help="When enabled, the prompt will include step-by-step reasoning instructions")
-    st.session_state.thinking_steps_enabled = thinking_steps_enabled
+    # Enable/disable toggle - using a callback to update the session state
+    # Initialize the value if it doesn't exist
+    if "thinking_steps_enabled" not in st.session_state:
+        st.session_state.thinking_steps_enabled = True
+
+    def on_toggle_change():
+        # This is a callback that runs when the toggle changes
+        # Update the main session state variable from the widget-specific one
+        st.session_state.thinking_steps_enabled = st.session_state.cot_component_toggle
+
+    # Use the toggle with a unique key that doesn't conflict with session state variable
+    thinking_steps_enabled = st.toggle(
+        "Enable Chain-of-Thought",
+        value=st.session_state.thinking_steps_enabled,
+        help="When enabled, the prompt will include step-by-step reasoning instructions",
+        key="cot_component_toggle",  # Unique key different from session state variable
+        on_change=on_toggle_change
+    )
 
     if thinking_steps_enabled:
         col1, col2 = st.columns([2, 1])
@@ -49,25 +62,25 @@ def render_chain_of_thought_section():
                     st.session_state.chain_of_thought_steps[i] = updated_step
 
                 with cols[1]:
-                    if i > 0 and st.button("↑", key=f"move_up_{i}"):
+                    if i > 0 and st.button("↑", key=f"cot_move_up_{i}"):
                         # Swap with previous step
                         st.session_state.chain_of_thought_steps[i], st.session_state.chain_of_thought_steps[i - 1] = \
                             st.session_state.chain_of_thought_steps[i - 1], st.session_state.chain_of_thought_steps[i]
                         st.rerun()
 
-                    if i < len(st.session_state.chain_of_thought_steps) - 1 and st.button("↓", key=f"move_down_{i}"):
+                    if i < len(st.session_state.chain_of_thought_steps) - 1 and st.button("↓", key=f"cot_move_down_{i}"):
                         # Swap with next step
                         st.session_state.chain_of_thought_steps[i], st.session_state.chain_of_thought_steps[i + 1] = \
                             st.session_state.chain_of_thought_steps[i + 1], st.session_state.chain_of_thought_steps[i]
                         st.rerun()
 
-                    if len(st.session_state.chain_of_thought_steps) > 1 and st.button("×", key=f"delete_{i}"):
+                    if len(st.session_state.chain_of_thought_steps) > 1 and st.button("×", key=f"cot_delete_{i}"):
                         # Remove this step
                         st.session_state.chain_of_thought_steps.pop(i)
                         st.rerun()
 
             # Add step button
-            if st.button("+ Add Step"):
+            if st.button("+ Add Step", key="cot_add_step_btn"):
                 st.session_state.chain_of_thought_steps.append(
                     f"New step {len(st.session_state.chain_of_thought_steps) + 1}")
                 st.rerun()
