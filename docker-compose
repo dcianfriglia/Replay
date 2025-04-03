@@ -1,0 +1,17 @@
+version: '3.8'
+
+services:
+  prompt-engineering-framework:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    ports:
+      - "8501:8501"
+    volumes:
+      - ./stored_states:/app/stored_states
+      - ./templates:/app/templates
+      - ./.env:/app/.env
+    restart: unless-stopped
+    environment:
+      - STREAMLIT_SERVER_PORT=8501
+      - STREAMLIT_SERVER_HEADLESS=true

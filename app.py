@@ -2,6 +2,12 @@ import streamlit as st
 import os
 from utils.state_management import initialize_session_state
 from utils.template_manager import list_templates, save_template, load_template
+from utils.state_persistence import (
+    save_state_to_local_storage,
+    load_state_from_local_storage,
+    list_saved_states,
+    delete_saved_state
+)
 from components.building_blocks import render_building_blocks_tab
 from components.workflows import render_workflows_tab
 from components.agents import render_agents_tab
@@ -21,6 +27,26 @@ with open(os.path.join(os.path.dirname(__file__), "styles", "main.css")) as f:
     st.markdown(f"<style>{f.read()}</style>", unsafe_allow_html=True)
 
 
+def render_session_management():
+    """Render session management UI (save/load state)"""
+    with st.expander("Session Management", expanded=False):
+        st.markdown("### Save/Load Session")
+
+        col1, col2 = st.columns(2)
+
+        with col1:
+            st.markdown("#### Save Current Session")
+            session_name = st.text_input("Session Name (optional)", key="session_save_name")
+
+            if st.button("Save Session", use_container_width=True):
+                filename = save_state_to_local_storage(session_name if session_name else None)
+                st.success(f"Session saved as: {os.path.basename(filename)}")
+
+        with col2:
+            st.markdown("#### Load Saved Session")
+            load_state_from_local_storage()
+
+
 def main():
     # Initialize session state
     initialize_session_state()
@@ -32,9 +58,63 @@ def main():
     with col_header_right:
         col_a, col_b = st.columns(2)
         with col_a:
-            st.button("Save Template", use_container_width=True)
+            if st.button("Save State", use_container_width=True):
+                st.session_state.show_save_dialog = True
         with col_b:
-            st.button("Load Template", use_container_width=True)
+            if st.button("Load State", use_container_width=True):
+                st.session_state.show_load_dialog = True
+
+    # Show save/load dialogs if requested
+    if st.session_state.get("show_save_dialog", False):
+        with st.expander("Save Current State", expanded=True):
+            session_name = st.text_input("State Name", key="save_state_name")
+            col1, col2 = st.columns([1, 1])
+            with col1:
+                if st.button("Save", key="save_state_confirm", use_container_width=True):
+                    filename = save_state_to_local_storage(session_name if session_name else None)
+                    st.success(f"State saved as: {os.path.basename(filename)}")
+                    st.session_state.show_save_dialog = False
+                    st.rerun()
+            with col2:
+                if st.button("Cancel", key="save_state_cancel", use_container_width=True):
+                    st.session_state.show_save_dialog = False
+                    st.rerun()
+
+    if st.session_state.get("show_load_dialog", False):
+        with st.expander("Load Saved State", expanded=True):
+            saved_states = list_saved_states()
+
+            if not saved_states:
+                st.warning("No saved states found.")
+                if st.button("Close", key="load_state_close_empty"):
+                    st.session_state.show_load_dialog = False
+                    st.rerun()
+            else:
+                state_options = [f"{state['display_name']} ({state['saved_at'][:10]})" for state in saved_states]
+                selected_state_idx = st.selectbox(
+                    "Select a saved state to load:",
+                    range(len(state_options)),
+                    format_func=lambda i: state_options[i],
+                    key="load_state_select"
+                )
+
+                col1, col2, col3 = st.columns([1, 1, 1])
+                with col1:
+                    if st.button("Load", key="load_state_confirm", use_container_width=True):
+                        if load_state_from_local_storage(saved_states[selected_state_idx]["path"]):
+                            st.success("State loaded successfully!")
+                            st.session_state.show_load_dialog = False
+                            st.rerun()
+                with col2:
+                    if st.button("Delete", key="delete_state", use_container_width=True):
+                        if delete_saved_state(saved_states[selected_state_idx]["path"]):
+                            st.warning("State deleted.")
+                            st.session_state.show_load_dialog = False
+                            st.rerun()
+                with col3:
+                    if st.button("Cancel", key="load_state_cancel", use_container_width=True):
+                        st.session_state.show_load_dialog = False
+                        st.rerun()
 
     # Sidebar
     with st.sidebar:
@@ -84,6 +164,9 @@ def main():
                         st.session_state[key] = value
                 st.success(f"Loaded template: {selected_template}")
 
+        # Session Management
+        render_session_management()
+
         # Actions
         st.divider()
         if st.button("Generate Content", type="primary", use_container_width=True):
@@ -116,7 +199,3 @@ Agile methodologies have revolutionized software development by emphasizing iter
     # Show generated content if available
     if "generated" in st.session_state and st.session_state.generated:
         render_content_display()
-
-
-if __name__ == "__main__":
-    main()

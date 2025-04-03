@@ -110,10 +110,37 @@ def initialize_session_state():
             "Fact Checking Instructions": False
         }
 
-    # UI state
-    if 'generated' not in st.session_state:
-        st.session_state.generated = False
-    if 'edit_raw' not in st.session_state:
-        st.session_state.edit_raw = False
-    if 'regenerate' not in st.session_state:
-        st.session_state.regenerate = False
+        # UI state
+        if 'generated' not in st.session_state:
+            st.session_state.generated = False
+        if 'edit_raw' not in st.session_state:
+            st.session_state.edit_raw = False
+        if 'regenerate' not in st.session_state:
+            st.session_state.regenerate = False
+        if 'show_save_dialog' not in st.session_state:
+            st.session_state.show_save_dialog = False
+        if 'show_load_dialog' not in st.session_state:
+            st.session_state.show_load_dialog = False
+
+        # State persistence
+        if 'feedback_data' not in st.session_state:
+            st.session_state.feedback_data = None
+        if 'content_satisfaction' not in st.session_state:
+            st.session_state.content_satisfaction = 0
+        if 'feedback_submitted' not in st.session_state:
+            st.session_state.feedback_submitted = False
+
+        # Advanced workflow settings
+        if 'iterative_iterations' not in st.session_state:
+            st.session_state.iterative_iterations = 3
+        if 'iterative_focus' not in st.session_state:
+            st.session_state.iterative_focus = ["Clarity", "Accuracy", "Coherence"]
+        if 'iterative_instructions' not in st.session_state:
+            st.session_state.iterative_instructions = "Improve the clarity and conciseness of the content. Ensure all concepts are explained clearly and information flows logically."
+        if 'critic_evaluation_criteria' not in st.session_state:
+            st.session_state.critic_evaluation_criteria = [
+                {"name": "Accuracy", "description": "Factual correctness and absence of errors", "weight": 5},
+                {"name": "Clarity", "description": "Clear and understandable explanations", "weight": 4},
+                {"name": "Completeness", "description": "Comprehensive coverage of the topic", "weight": 3},
+                {"name": "Relevance", "description": "Direct relevance to the query or task", "weight": 4}
+            ]
