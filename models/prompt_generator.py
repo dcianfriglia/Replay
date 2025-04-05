@@ -20,6 +20,73 @@ def generate_prompt():
         prompt += "# Task Definition\n"
         prompt += st.session_state.task + "\n\n"
 
+    # Content Intent & Guidelines (new section)
+    if st.session_state.prompt_structure.get("Content Intent & Guidelines", False):
+        prompt += "# Content Intent & Guidelines\n"
+        prompt += f"**Intent:** {st.session_state.content_intent}\n\n"
+        prompt += f"**Mission Statement:** {st.session_state.mission_statement}\n\n"
+        prompt += f"**Voice & Tone:** {st.session_state.voice_choice}\n\n"
+
+        if hasattr(st.session_state, "content_rules") and st.session_state.content_rules:
+            prompt += "**Content Rules (Do NOT include):**\n"
+            for rule in st.session_state.content_rules:
+                prompt += f"- {rule}\n"
+            prompt += "\n"
+
+    # Content Setup (new section)
+    if st.session_state.prompt_structure.get("Content Setup", False):
+        prompt += "# Content Setup\n"
+        prompt += f"**Content Description:** {st.session_state.content_description}\n\n"
+        prompt += "**Business Context:**\n"
+        prompt += f"- Name: {st.session_state.business_name}\n"
+        prompt += f"- Display Location: {st.session_state.business_where}\n"
+        prompt += f"- Target Audience: {st.session_state.business_who}\n"
+        prompt += f"- Content Format: {st.session_state.business_look}\n"
+        prompt += f"- Purpose: {st.session_state.business_why}\n\n"
+
+    # Design Requirements (new section)
+    if st.session_state.prompt_structure.get("Design Requirements", False):
+        prompt += "# Design Requirements\n"
+
+        if hasattr(st.session_state, "components") and st.session_state.components:
+            prompt += "**Content Components:**\n"
+            for component in st.session_state.components:
+                prompt += f"- {component['type']}: {component['description']}\n"
+                prompt += f"  Length: {component['min_chars']}-{component['max_chars']} chars, ~{component['sentences']} sentences\n"
+            prompt += "\n"
+
+        prompt += f"**Language & Locale:** {st.session_state.language_choice}\n\n"
+
+        if hasattr(st.session_state, "globalization_items") and st.session_state.globalization_items:
+            prompt += "**Globalization Considerations:**\n"
+            for item in st.session_state.globalization_items:
+                prompt += f"- {item}\n"
+            prompt += "\n"
+
+    # Data Sources & Examples (new section)
+    if st.session_state.prompt_structure.get("Data Sources & Examples", False):
+        prompt += "# Data Sources & Examples\n"
+
+        # Add file mappings if available
+        if hasattr(st.session_state, "file_mappings") and st.session_state.file_mappings:
+            prompt += "**Data Fields:**\n"
+            for mapping in st.session_state.file_mappings:
+                prompt += f"- {mapping['placeholder']}: Corresponds to {mapping['field']} in the provided data\n"
+            prompt += "\n"
+
+        # Add GraphQL mappings if available
+        if hasattr(st.session_state, "graphql_mappings") and st.session_state.graphql_mappings:
+            prompt += "**GraphQL Data Fields:**\n"
+            for mapping in st.session_state.graphql_mappings:
+                prompt += f"- {mapping['placeholder']}: Corresponds to {mapping['field']} in the GraphQL data\n"
+            prompt += "\n"
+
+        # Add manual examples if available
+        if hasattr(st.session_state, "manual_examples") and st.session_state.manual_examples:
+            prompt += "**Examples for Reference:**\n"
+            for i, example in enumerate(st.session_state.manual_examples):
+                prompt += f"Example {i + 1} ({example['comment']}):\n```\n{example['text']}\n```\n\n"
+
     # Input Data Format
     if st.session_state.prompt_structure["Input Data Format"] and st.session_state.input_description:
         prompt += "# Input Data Format\n"
@@ -77,6 +144,74 @@ def generate_prompt():
         prompt += "- Citations and references\n\n"
 
     return prompt
+
+
+def generate_content_with_data_injection(prompt):
+    """
+    Replace placeholders in the prompt with actual data values
+
+    Args:
+        prompt (str): The prompt template with placeholders
+
+    Returns:
+        str: The prompt with placeholders replaced by actual data
+    """
+    processed_prompt = prompt
+
+    # Process file mappings if available
+    if hasattr(st.session_state,
+               "file_mappings") and st.session_state.file_mappings and st.session_state.uploaded_file_data is not None:
+        data = st.session_state.uploaded_file_data
+
+        for mapping in st.session_state.file_mappings:
+            field = mapping["field"]
+            placeholder = mapping["placeholder"]
+
+            if isinstance(data, dict) and field in data:
+                # JSON dictionary
+                processed_prompt = processed_prompt.replace(f"{{{{{placeholder}}}}}", str(data[field]))
+
+            elif isinstance(data, list) and len(data) > 0 and isinstance(data[0], dict) and field in data[0]:
+                # JSON list of dictionaries (use first item)
+                processed_prompt = processed_prompt.replace(f"{{{{{placeholder}}}}}", str(data[0][field]))
+
+            elif hasattr(data, "columns") and field in data.columns:
+                # DataFrame
+                processed_prompt = processed_prompt.replace(f"{{{{{placeholder}}}}}", str(data[field].iloc[0]))
+
+    # Process GraphQL mappings if available
+    if hasattr(st.session_state,
+               "graphql_mappings") and st.session_state.graphql_mappings and st.session_state.graphql_results is not None:
+        data = st.session_state.graphql_results
+
+        for mapping in st.session_state.graphql_mappings:
+            field_path = mapping["field"].split(".")
+            placeholder = mapping["placeholder"]
+
+            # Navigate through the nested data structure
+            current_data = data
+            try:
+                for part in field_path:
+                    if part and current_data is not None:
+                        if isinstance(current_data, dict) and part in current_data:
+                            current_data = current_data[part]
+                        elif isinstance(current_data, list) and len(current_data) > 0:
+                            current_data = current_data[0]  # Take first item from list
+                            if isinstance(current_data, dict) and part in current_data:
+                                current_data = current_data[part]
+                            else:
+                                current_data = None
+                                break
+                        else:
+                            current_data = None
+                            break
+
+                if current_data is not None:
+                    processed_prompt = processed_prompt.replace(f"{{{{{placeholder}}}}}", str(current_data))
+            except:
+                pass  # Skip if field path is invalid
+
+    return processed_prompt
 
 
 def simulate_content_generation():

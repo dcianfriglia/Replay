@@ -107,40 +107,136 @@ def initialize_session_state():
             "Examples (Few-Shot Learning)": True,
             "Chain-of-Thought Instructions": True,
             "Self-Review Requirements": True,
-            "Fact Checking Instructions": False
+            "Fact Checking Instructions": False,
+            # New sections for enhanced building blocks
+            "Content Intent & Guidelines": True,
+            "Content Setup": True,
+            "Design Requirements": True,
+            # New section for data injection
+            "Data Sources & Examples": True
         }
 
-        # UI state
-        if 'generated' not in st.session_state:
-            st.session_state.generated = False
-        if 'edit_raw' not in st.session_state:
-            st.session_state.edit_raw = False
-        if 'regenerate' not in st.session_state:
-            st.session_state.regenerate = False
-        if 'show_save_dialog' not in st.session_state:
-            st.session_state.show_save_dialog = False
-        if 'show_load_dialog' not in st.session_state:
-            st.session_state.show_load_dialog = False
+    # UI state
+    if 'generated' not in st.session_state:
+        st.session_state.generated = False
+    if 'edit_raw' not in st.session_state:
+        st.session_state.edit_raw = False
+    if 'regenerate' not in st.session_state:
+        st.session_state.regenerate = False
+    if 'show_save_dialog' not in st.session_state:
+        st.session_state.show_save_dialog = False
+    if 'show_load_dialog' not in st.session_state:
+        st.session_state.show_load_dialog = False
 
-        # State persistence
-        if 'feedback_data' not in st.session_state:
-            st.session_state.feedback_data = None
-        if 'content_satisfaction' not in st.session_state:
-            st.session_state.content_satisfaction = 0
-        if 'feedback_submitted' not in st.session_state:
-            st.session_state.feedback_submitted = False
+    # State persistence
+    if 'feedback_data' not in st.session_state:
+        st.session_state.feedback_data = None
+    if 'content_satisfaction' not in st.session_state:
+        st.session_state.content_satisfaction = 0
+    if 'feedback_submitted' not in st.session_state:
+        st.session_state.feedback_submitted = False
 
-        # Advanced workflow settings
-        if 'iterative_iterations' not in st.session_state:
-            st.session_state.iterative_iterations = 3
-        if 'iterative_focus' not in st.session_state:
-            st.session_state.iterative_focus = ["Clarity", "Accuracy", "Coherence"]
-        if 'iterative_instructions' not in st.session_state:
-            st.session_state.iterative_instructions = "Improve the clarity and conciseness of the content. Ensure all concepts are explained clearly and information flows logically."
-        if 'critic_evaluation_criteria' not in st.session_state:
-            st.session_state.critic_evaluation_criteria = [
-                {"name": "Accuracy", "description": "Factual correctness and absence of errors", "weight": 5},
-                {"name": "Clarity", "description": "Clear and understandable explanations", "weight": 4},
-                {"name": "Completeness", "description": "Comprehensive coverage of the topic", "weight": 3},
-                {"name": "Relevance", "description": "Direct relevance to the query or task", "weight": 4}
-            ]
+    # Advanced workflow settings
+    if 'iterative_iterations' not in st.session_state:
+        st.session_state.iterative_iterations = 3
+    if 'iterative_focus' not in st.session_state:
+        st.session_state.iterative_focus = ["Clarity", "Accuracy", "Coherence"]
+    if 'iterative_instructions' not in st.session_state:
+        st.session_state.iterative_instructions = "Improve the clarity and conciseness of the content. Ensure all concepts are explained clearly and information flows logically."
+    if 'critic_evaluation_criteria' not in st.session_state:
+        st.session_state.critic_evaluation_criteria = [
+            {"name": "Accuracy", "description": "Factual correctness and absence of errors", "weight": 5},
+            {"name": "Clarity", "description": "Clear and understandable explanations", "weight": 4},
+            {"name": "Completeness", "description": "Comprehensive coverage of the topic", "weight": 3},
+            {"name": "Relevance", "description": "Direct relevance to the query or task", "weight": 4}
+        ]
+
+    # New state variables for enhanced building blocks
+
+    # Content Intent & Guidelines
+    if 'content_intent' not in st.session_state:
+        st.session_state.content_intent = "Inform"
+    if 'mission_statement' not in st.session_state:
+        st.session_state.mission_statement = "This content aims to inform the audience about Agile methodologies by providing practical implementation guidance. It will help readers to successfully adopt Agile practices in their software development teams."
+    if 'voice_choice' not in st.session_state:
+        st.session_state.voice_choice = "Professional"
+    if 'content_rules' not in st.session_state:
+        st.session_state.content_rules = [
+            "Avoid excessive technical jargon without explanation",
+            "Do not make specific promises about results or timelines",
+            "Avoid criticizing specific methodologies or approaches"
+        ]
+
+    # Content Setup
+    if 'content_description' not in st.session_state:
+        st.session_state.content_description = "A comprehensive guide to implementing Agile methodology in software development teams of various sizes and experience levels."
+    if 'business_name' not in st.session_state:
+        st.session_state.business_name = "Agile Implementation Guide"
+    if 'business_where' not in st.session_state:
+        st.session_state.business_where = "On the company's internal knowledge base and training portal"
+    if 'business_who' not in st.session_state:
+        st.session_state.business_who = "Development team leads, project managers, and developers"
+    if 'business_look' not in st.session_state:
+        st.session_state.business_look = "A well-structured document with headings, subheadings, code examples, and visual diagrams"
+    if 'business_why' not in st.session_state:
+        st.session_state.business_why = "To provide a standardized resource for teams transitioning to Agile methodology and to ensure consistent implementation across the organization"
+
+    # Design Requirements
+    if 'components' not in st.session_state:
+        st.session_state.components = [
+            {
+                "type": "Introduction",
+                "description": "Overview of Agile and its benefits",
+                "min_chars": 300,
+                "max_chars": 500,
+                "sentences": 5
+            },
+            {
+                "type": "Body Text",
+                "description": "Step-by-step implementation guide",
+                "min_chars": 1500,
+                "max_chars": 2500,
+                "sentences": 20
+            },
+            {
+                "type": "Conclusion",
+                "description": "Summary of key points and next steps",
+                "min_chars": 200,
+                "max_chars": 400,
+                "sentences": 4
+            }
+        ]
+    if 'language_choice' not in st.session_state:
+        st.session_state.language_choice = "English (US)"
+    if 'globalization_items' not in st.session_state:
+        st.session_state.globalization_items = [
+            "Use standard American English terminology",
+            "Ensure examples are globally relevant",
+            "Avoid culture-specific metaphors"
+        ]
+
+    # Data Injection module state variables
+    if 'data_source_type' not in st.session_state:
+        st.session_state.data_source_type = "File"
+    if 'file_mappings' not in st.session_state:
+        st.session_state.file_mappings = []
+    if 'uploaded_file_data' not in st.session_state:
+        st.session_state.uploaded_file_data = None
+    if 'graphql_endpoint' not in st.session_state:
+        st.session_state.graphql_endpoint = ""
+    if 'graphql_query' not in st.session_state:
+        st.session_state.graphql_query = """query {
+  example {
+    id
+    name
+    description
+  }
+}"""
+    if 'graphql_headers' not in st.session_state:
+        st.session_state.graphql_headers = {}
+    if 'graphql_results' not in st.session_state:
+        st.session_state.graphql_results = None
+    if 'graphql_mappings' not in st.session_state:
+        st.session_state.graphql_mappings = []
+    if 'manual_examples' not in st.session_state:
+        st.session_state.manual_examples = []

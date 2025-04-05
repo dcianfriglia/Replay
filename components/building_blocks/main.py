@@ -7,6 +7,14 @@ from .examples import render_examples_section
 from .evaluation import render_evaluation_section
 from .workflow_selector import render_workflow_selector
 from .agent_selector import render_agent_selector
+# Import new building blocks
+from .enhanced_building_blocks import (
+    render_content_intent_section,
+    render_content_setup_section,
+    render_design_requirements_section
+)
+# Import data injection module
+from .data_injection import render_data_injection_section
 
 
 def render_building_blocks_tab():
@@ -14,23 +22,50 @@ def render_building_blocks_tab():
 
     section_header("Prompt Building Blocks")
 
-    col1, col2 = st.columns(2)
+    # Create tab selection for building block categories
+    block_category = st.radio(
+        "Building Block Categories",
+        ["Basic", "Enhanced", "Data & Examples", "Workflows & Agents"],
+        horizontal=True,
+        key="building_block_category"
+    )
 
-    with col1:
-        render_context_section()
-        render_input_format_section()
+    if block_category == "Basic":
+        # Original basic building blocks
+        col1, col2 = st.columns(2)
 
-    with col2:
-        render_task_section()
-        render_output_section()
+        with col1:
+            render_context_section()
+            render_input_format_section()
 
-    col3, col4 = st.columns(2)
+        with col2:
+            render_task_section()
+            render_output_section()
 
-    with col3:
-        render_examples_section()
+        col3, col4 = st.columns(2)
 
-    with col4:
-        render_evaluation_section()
+        with col3:
+            render_examples_section()
 
-    render_workflow_selector()
-    render_agent_selector()
+        with col4:
+            render_evaluation_section()
+
+    elif block_category == "Enhanced":
+        # New enhanced building blocks
+        col1, col2 = st.columns(2)
+
+        with col1:
+            render_content_intent_section()
+            render_design_requirements_section()
+
+        with col2:
+            render_content_setup_section()
+
+    elif block_category == "Data & Examples":
+        # Data injection section
+        render_data_injection_section()
+
+    else:  # Workflows & Agents
+        # Workflow and agent selectors
+        render_workflow_selector()
+        render_agent_selector()

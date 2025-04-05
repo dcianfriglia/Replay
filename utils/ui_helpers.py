@@ -21,36 +21,19 @@ def subsection_header(title):
     st.markdown(f"#### {title}")
 
 
-def info_tooltip(text):
-    """
-    Create an information tooltip with the given text
-
-    Args:
-        text (str): The tooltip text
-
-    Returns:
-        str: HTML for the tooltip
-    """
-    return f"""
-    <span class="tooltip">
-        ℹ️
-        <span class="tooltiptext">{text}</span>
-    </span>
-    """
-
-
 def section_with_info(title, info_text):
     """
-    Render a section header with an information tooltip
+    Render a section header with help info using Streamlit's native help parameter
+
+    This version replaces the custom tooltip with Streamlit's built-in help parameter
+    for better integration with Streamlit's UI.
 
     Args:
         title (str): The title of the section
-        info_text (str): The tooltip text
+        info_text (str): The help text to display
     """
-    st.markdown(
-        f'<div class="section-header">{title} {info_tooltip(info_text)}</div>',
-        unsafe_allow_html=True
-    )
+    # Use Streamlit's native markdown with a header, then follow with a help expander
+    st.markdown(f"### {title}", help=info_text)
 
 
 def card_container(content_func):
@@ -89,16 +72,8 @@ def toggle_switch(label, key, default=False, help_text=None):
         else:
             st.session_state[key] = default
 
-    col1, col2 = st.columns([3, 1])
-    with col1:
-        st.markdown(f"**{label}**")
-        if help_text:
-            st.markdown(f"<small>{help_text}</small>", unsafe_allow_html=True)
-    with col2:
-        value = st.checkbox("", value=st.session_state[key],
-                            key=key, help=help_text)
-
-    return value
+    # Use Streamlit's built-in help parameter for the checkbox
+    return st.checkbox(label, value=st.session_state[key], key=key, help=help_text)
 
 
 def agent_card(title, description, enabled_key):
@@ -122,10 +97,13 @@ def agent_card(title, description, enabled_key):
         st.session_state[enabled_key] = st.session_state[main_key]
 
     with st.container(border=True):
-        is_enabled = toggle_switch(title, enabled_key,
-                                   default=False,
-                                   help_text=description)
-
+        # Use Streamlit's toggle with built-in help
+        is_enabled = st.toggle(
+            title,
+            value=st.session_state.get(enabled_key, False),
+            key=enabled_key,
+            help=description
+        )
         return is_enabled
 
 
@@ -159,14 +137,13 @@ def workflow_option(title, description, selected_key):
         else:
             st.session_state[selected_key] = False
 
-    is_selected = st.checkbox(title,
-                              value=st.session_state[selected_key],
-                              key=selected_key)
-
-    if is_selected:
-        with st.expander(f"About {title}", expanded=False):
-            st.markdown(description)
-
+    # Use Streamlit's checkbox with native help parameter
+    is_selected = st.checkbox(
+        title,
+        value=st.session_state[selected_key],
+        key=selected_key,
+        help=description
+    )
     return is_selected
 
 
