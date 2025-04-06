@@ -8,6 +8,9 @@ def generate_prompt():
     Returns:
         str: The formatted prompt text
     """
+    # This is the original function that generates a combined prompt
+    # We'll keep it for backward compatibility
+
     prompt = ""
 
     # Context & Background
@@ -142,6 +145,278 @@ def generate_prompt():
         prompt += "- Historical information\n"
         prompt += "- Technical specifications\n"
         prompt += "- Citations and references\n\n"
+
+    return prompt
+
+
+def generate_system_prompt():
+    """
+    Generate a system prompt based on selected components for role-based prompting
+
+    Returns:
+        str: Formatted system prompt
+    """
+    prompt = ""
+
+    # Check if we're using the role-based sections from structure_updated
+    using_section_roles = "section_roles" in st.session_state
+
+    if using_section_roles:
+        # Get sections that should be in the system prompt based on section_roles
+        system_sections = [s for s in st.session_state.prompt_section_order
+                           if st.session_state.section_roles.get(s, "System") == "System"
+                           and st.session_state.prompt_structure.get(s, False)]
+
+        # Add sections based on the order and role
+        for section in system_sections:
+            # Add each section based on what it is
+            if section == "Context & Background" and st.session_state.context:
+                prompt += "# Context & Background\n"
+                prompt += st.session_state.context + "\n\n"
+            elif section == "Task Definition" and st.session_state.task:
+                prompt += "# Task Definition\n"
+                prompt += st.session_state.task + "\n\n"
+            elif section == "Input Data Format" and st.session_state.input_description:
+                prompt += "# Input Data Format\n"
+                prompt += f"Format: {st.session_state.input_format}\n"
+                prompt += st.session_state.input_description + "\n\n"
+            elif section == "Output Requirements":
+                prompt += "# Output Requirements\n"
+                prompt += f"Format: {st.session_state.output_format}\n"
+                prompt += f"Tone: {st.session_state.output_tone}\n"
+                if st.session_state.output_requirements:
+                    prompt += st.session_state.output_requirements + "\n\n"
+                else:
+                    prompt += "\n"
+            elif section == "Examples (Few-Shot Learning)" and st.session_state.few_shot_enabled:
+                prompt += "# Examples & Constraints\n"
+                for i, example in enumerate(st.session_state.examples):
+                    if example["input"] or example["output"]:
+                        prompt += f"[Example {i + 1}]\n"
+                        prompt += f"Input: {example['input']}\n"
+                        prompt += f"Output: {example['output']}\n\n"
+            elif section == "Chain-of-Thought Instructions" and st.session_state.thinking_steps_enabled:
+                prompt += "# Chain-of-Thought Instructions\n"
+                for i, step in enumerate(st.session_state.chain_of_thought_steps):
+                    prompt += f"{i + 1}. {step}\n"
+                prompt += "\n"
+            elif section == "Self-Review Requirements" and st.session_state.self_consistency_enabled:
+                prompt += "# Self-Review Requirements\n"
+                prompt += "After generating content, review it to ensure:\n"
+                prompt += "- All claims are factually accurate\n"
+                prompt += "- Content is well-organized and flows logically\n"
+                prompt += "- Advice is practical and actionable\n"
+                prompt += "- Language is clear and professional\n"
+                prompt += "- Content follows specified output requirements\n\n"
+            elif section == "Fact Checking Instructions" and st.session_state.fact_checker_enabled:
+                prompt += "# Fact Checking Instructions\n"
+                prompt += "Verify all factual claims and ensure accuracy of:\n"
+                prompt += "- Statistics and numerical data\n"
+                prompt += "- Historical information\n"
+                prompt += "- Technical specifications\n"
+                prompt += "- Citations and references\n\n"
+            else:
+                # Generic handler for custom sections
+                prompt += f"# {section}\n"
+                prompt += f"Instructions for {section}.\n\n"
+    else:
+        # Use the original system prompt sections (from role_based.py)
+        # Context & Background
+        if st.session_state.system_prompt_sections.get("Context & Background", False) and st.session_state.context:
+            prompt += "# Context & Background\n"
+            prompt += st.session_state.context + "\n\n"
+
+    # Persona Definition
+    if st.session_state.system_prompt_sections.get("Persona Definition", False):
+        prompt += "# Persona Definition\n"
+        prompt += "You are an AI assistant with expertise in content creation, specializing in software development methodologies and project management approaches. You provide comprehensive, well-structured, and actionable information tailored to the user's specific needs.\n\n"
+
+    # Tone & Voice
+    if st.session_state.system_prompt_sections.get("Tone & Voice", False):
+        voice_choice = getattr(st.session_state, "voice_choice", "Professional")
+        prompt += "# Tone & Voice\n"
+
+        if voice_choice == "Professional":
+            prompt += "Maintain a professional, authoritative tone while remaining approachable. Use clear, precise language without unnecessary jargon. Be thorough but concise.\n\n"
+        elif voice_choice == "Conversational":
+            prompt += "Adopt a friendly, conversational tone as if speaking directly to the user. Use natural language, occasional contractions, and a warm, helpful demeanor.\n\n"
+        elif voice_choice == "Academic":
+            prompt += "Use a formal, academic tone with proper citations and structured arguments. Provide thorough analysis and consider multiple perspectives.\n\n"
+        elif voice_choice == "Technical":
+            prompt += "Employ a technical tone with precise terminology relevant to the domain. Include specific details, examples, and implementation considerations.\n\n"
+        else:
+            prompt += f"Use a {voice_choice} tone that balances clarity with engagement. Be informative while keeping the reader's attention.\n\n"
+
+    # Domain Expertise
+    if st.session_state.system_prompt_sections.get("Domain Expertise", False):
+        prompt += "# Domain Expertise\n"
+        prompt += "Demonstrate expertise in modern software development practices, particularly Agile methodologies. Draw upon knowledge of Scrum, Kanban, XP, and other frameworks. Provide practical insights based on industry best practices and common implementation challenges.\n\n"
+
+    # Constraints & Limitations
+    if st.session_state.system_prompt_sections.get("Constraints & Limitations", False):
+        prompt += "# Constraints & Limitations\n"
+
+        if st.session_state.constraints:
+            prompt += st.session_state.constraints + "\n\n"
+        else:
+            prompt += "Focus on practical implementation rather than theoretical background. Avoid making specific promises about outcomes or timelines. Acknowledge that approaches may need to be adapted to specific organizational contexts.\n\n"
+
+    # Evaluation Criteria
+    if st.session_state.system_prompt_sections.get("Evaluation Criteria",
+                                                   False) and st.session_state.evaluation_criteria:
+        prompt += "# Evaluation Criteria\n"
+        prompt += st.session_state.evaluation_criteria + "\n\n"
+
+    # Self-Review Requirements
+    if st.session_state.system_prompt_sections.get("Self-Review Requirements", False):
+        prompt += "# Self-Review Requirements\n"
+        prompt += "Before providing your final response, review your content to ensure:\n"
+        prompt += "- All information is factually accurate and current\n"
+        prompt += "- Content is well-organized with clear sections and logical flow\n"
+        prompt += "- Advice is practical and actionable for the intended audience\n"
+        prompt += "- Language is clear, professional, and free of errors\n"
+        prompt += "- All aspects of the user's query have been addressed thoroughly\n\n"
+
+    # Custom sections (dynamically added)
+    for section, included in st.session_state.system_prompt_sections.items():
+        if included and section not in ["Context & Background", "Persona Definition", "Tone & Voice",
+                                        "Domain Expertise", "Constraints & Limitations",
+                                        "Evaluation Criteria", "Self-Review Requirements"]:
+            prompt += f"# {section}\n"
+            prompt += f"Custom instructions for {section}.\n\n"
+
+    return prompt
+
+
+def generate_user_prompt():
+    """
+    Generate a user prompt based on selected components for role-based prompting
+
+    Returns:
+        str: Formatted user prompt
+    """
+    prompt = ""
+
+    # Check if we're using the role-based sections from structure_updated
+    using_section_roles = "section_roles" in st.session_state
+
+    if using_section_roles:
+        # Get sections that should be in the user prompt based on section_roles
+        user_sections = [s for s in st.session_state.prompt_section_order
+                         if st.session_state.section_roles.get(s, "User") == "User"
+                         and st.session_state.prompt_structure.get(s, False)]
+
+        # Add sections based on the order and role
+        for section in user_sections:
+            # Add each section based on what it is
+            if section == "Context & Background" and st.session_state.context:
+                prompt += "# Context & Background\n"
+                prompt += st.session_state.context + "\n\n"
+            elif section == "Task Definition" and st.session_state.task:
+                prompt += "# Task Definition\n"
+                prompt += st.session_state.task + "\n\n"
+            elif section == "Input Data Format" and st.session_state.input_description:
+                prompt += "# Input Data Format\n"
+                prompt += f"Format: {st.session_state.input_format}\n"
+                prompt += st.session_state.input_description + "\n\n"
+            elif section == "Output Requirements":
+                prompt += "# Output Requirements\n"
+                prompt += f"Format: {st.session_state.output_format}\n"
+                prompt += f"Tone: {st.session_state.output_tone}\n"
+                if st.session_state.output_requirements:
+                    prompt += st.session_state.output_requirements + "\n\n"
+                else:
+                    prompt += "\n"
+            elif section == "Examples (Few-Shot Learning)" and st.session_state.few_shot_enabled:
+                prompt += "# Examples & Constraints\n"
+                for i, example in enumerate(st.session_state.examples):
+                    if example["input"] or example["output"]:
+                        prompt += f"[Example {i + 1}]\n"
+                        prompt += f"Input: {example['input']}\n"
+                        prompt += f"Output: {example['output']}\n\n"
+            elif section == "Chain-of-Thought Instructions" and st.session_state.thinking_steps_enabled:
+                prompt += "# Chain-of-Thought Instructions\n"
+                for i, step in enumerate(st.session_state.chain_of_thought_steps):
+                    prompt += f"{i + 1}. {step}\n"
+                prompt += "\n"
+            elif section == "Self-Review Requirements" and st.session_state.self_consistency_enabled:
+                prompt += "# Self-Review Requirements\n"
+                prompt += "After generating content, review it to ensure:\n"
+                prompt += "- All claims are factually accurate\n"
+                prompt += "- Content is well-organized and flows logically\n"
+                prompt += "- Advice is practical and actionable\n"
+                prompt += "- Language is clear and professional\n"
+                prompt += "- Content follows specified output requirements\n\n"
+            elif section == "Fact Checking Instructions" and st.session_state.fact_checker_enabled:
+                prompt += "# Fact Checking Instructions\n"
+                prompt += "Verify all factual claims and ensure accuracy of:\n"
+                prompt += "- Statistics and numerical data\n"
+                prompt += "- Historical information\n"
+                prompt += "- Technical specifications\n"
+                prompt += "- Citations and references\n\n"
+            else:
+                # Generic handler for custom sections
+                prompt += f"# {section}\n"
+                prompt += f"Instructions for {section}.\n\n"
+    else:
+        # Use the original user prompt sections (from role_based.py)
+        # Task Definition
+        if st.session_state.user_prompt_sections.get("Task Definition", False) and st.session_state.task:
+            prompt += "# Task Definition\n"
+            prompt += st.session_state.task + "\n\n"
+
+    # Input Data Format
+    if st.session_state.user_prompt_sections.get("Input Data Format", False) and st.session_state.input_description:
+        prompt += "# Input Data Format\n"
+        prompt += f"Format: {st.session_state.input_format}\n"
+        prompt += st.session_state.input_description + "\n\n"
+
+    # Output Requirements
+    if st.session_state.user_prompt_sections.get("Output Requirements", False):
+        prompt += "# Output Requirements\n"
+        prompt += f"Format: {st.session_state.output_format}\n"
+        prompt += f"Tone: {st.session_state.output_tone}\n"
+        if st.session_state.output_requirements:
+            prompt += st.session_state.output_requirements + "\n\n"
+        else:
+            prompt += "\n"
+
+    # Examples (Few-Shot Learning)
+    if st.session_state.user_prompt_sections.get("Examples (Few-Shot Learning)",
+                                                 False) and st.session_state.few_shot_enabled:
+        prompt += "# Examples & Constraints\n"
+        for i, example in enumerate(st.session_state.examples):
+            if example["input"] or example["output"]:
+                prompt += f"[Example {i + 1}]\n"
+                prompt += f"Input: {example['input']}\n"
+                prompt += f"Output: {example['output']}\n\n"
+
+    # Chain-of-Thought Instructions
+    if st.session_state.user_prompt_sections.get("Chain-of-Thought Instructions",
+                                                 False) and st.session_state.thinking_steps_enabled:
+        prompt += "# Chain-of-Thought Instructions\n"
+        prompt += "Please follow these steps when addressing my request:\n"
+        for i, step in enumerate(st.session_state.chain_of_thought_steps):
+            prompt += f"{i + 1}. {step}\n"
+        prompt += "\n"
+
+    # Fact Checking Instructions
+    if st.session_state.user_prompt_sections.get("Fact Checking Instructions",
+                                                 False) and st.session_state.fact_checker_enabled:
+        prompt += "# Fact Checking Instructions\n"
+        prompt += "Verify all factual claims and ensure accuracy of:\n"
+        prompt += "- Statistics and numerical data\n"
+        prompt += "- Historical information\n"
+        prompt += "- Technical specifications\n"
+        prompt += "- Citations and references\n\n"
+
+    # Custom sections (dynamically added)
+    for section, included in st.session_state.user_prompt_sections.items():
+        if included and section not in ["Task Definition", "Input Data Format", "Output Requirements",
+                                        "Examples (Few-Shot Learning)", "Chain-of-Thought Instructions",
+                                        "Fact Checking Instructions"]:
+            prompt += f"# {section}\n"
+            prompt += f"Custom instructions for {section}.\n\n"
 
     return prompt
 
